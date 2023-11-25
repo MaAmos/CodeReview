@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADD Suggestion</title>
+    <style>
+        html,body {
+            margin: 0;
+            padding: 0;
+        }
+        form{
+            padding-left: 20px;
+        }
+        input,select,textarea {
+            width: 70%;
+            line-height: 20px;
+            margin: 20px 0;
+        }
+        select {
+            width: 20%;
+            height: 28px;
+        }
+        button{
+            width: 80px;
+            line-height: 32px;
+            font-size: 16px;
+        }
+        label{
+            display: flex;
+            align-items: center;
+        }
+        label > span{
+            text-align: right;
+            min-width: 80px;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="add">
+        <form action="">
+            <label>
+                <span>当前文件：</span>
+                <p id="fileInfo"></p>
+            </label><br>
+            <label>
+                <span>标题：</span>
+                <input type="text" placeholder="添加问题简述，方便分类和查询" name="title" id="title"><br>
+            </label>
+            <label>
+                <span>意见：</span>
+                <textarea name="suggestion" id="suggestion" rows="2" placeholder="填写选择的文件或者代码存在什么问题及您的检视意见" cols="30"></textarea><br>
+            </label>
+            <label>
+                <span>优先级：</span>
+                <select name="type" id="type">
+                    <option value="red">阻塞</option>
+                    <option value="orange">严重</option>
+                    <option value="yellow">一般</option>
+                    <option value="green">提示</option>
+                </select><br>
+            </label>
+            <label>
+                <span>代码负责人：</span>
+                <input type="text" placeholder="请输入姓名，方便通知到对应的开发" name="userCode" id="userCode"><br>
+            </label>
+            <label>
+                <span>检视人：</span>
+                <input type="text" placeholder="请输入姓名，方便后续结果反馈" name="reivewer" id="reivewer"><br>
+            </label>
+            <button type="button" onclick="submitFormData()">提交</button>
+            <button type="button" onclick="cancelFormData()">取消</button>
+        </form>
+
+    </div>
+</body>
+<script>
+
+let vscode = acquireVsCodeApi()
+console.log(vscode,"vscode")
+
+let titleDom = document.getElementById("title")
+let suggestionDom = document.getElementById("suggestion")
+let typeDom = document.getElementById("type")
+let userCodeDom = document.getElementById("userCode")
+let fileInfoDom = document.getElementById("fileInfo")
+let reivewerDom = document.getElementById("reivewer")
+let gitUrl = ""
+function submitFormData(){
+    // 设置数据传输的格式，然后发送消息到主进程
+    let params = {
+        file: fileInfoDom.innerText || "",
+        gitUrl: gitUrl,
+        title: titleDom.value || "检视意见",
+        suggestion: suggestionDom.value || "我没有意见，但是你这块代码有问题",
+        type: typeDom.value || "",
+        userCode: userCodeDom.value || "",
+        reivewer: reivewerDom.value || "无名"
+    }
+    vscode.postMessage({
+        code:"CONFIRM",
+        value: params
+    })
+    console.log(titleDom,suggestionDom,typeDom,userCodeDom,"submit")
+}
+
+function cancelFormData(){
+    vscode.postMessage({
+        code:"CANCEL",
+    })
+}
+
+
+//  接收来自主进程的消息
+window.addEventListener("message",function(data){
+    console.log(data,"aaa 我收到啦！！")
+    fileInfoDom.innerHTML = data.data.file || "当前文件"
+    gitUrl = data.data.gitUrl || ""
+})
+
+</script>
+</html>
